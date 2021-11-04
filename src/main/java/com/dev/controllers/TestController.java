@@ -22,6 +22,11 @@ public class TestController {
     @PostConstruct
     private void init () {
         userObjects = new ArrayList<>();
+        UserObject userObject = new UserObject();
+        userObject.setUsername("Shai");
+        userObject.setPassword("1234");
+        userObject.setToken(createHash(userObject.getUsername(), userObject.getPassword()));
+        this.userObjects.add(userObject);
 
     }
 
