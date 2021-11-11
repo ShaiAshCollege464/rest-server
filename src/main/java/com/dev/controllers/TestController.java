@@ -1,7 +1,9 @@
 package com.dev.controllers;
 
+import com.dev.Persist;
 import com.dev.objects.PostObject;
 import com.dev.objects.UserObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,6 +20,10 @@ import java.util.Random;
 @RestController
 public class TestController {
     private  List<UserObject> userObjects;
+
+
+    @Autowired
+    private Persist persist;
 
     @PostConstruct
     private void init () {
@@ -54,13 +60,7 @@ public class TestController {
 
     @RequestMapping("sign-in")
     public String signIn (String username, String password) {
-        String token = null;
-        for (UserObject userObject : this.userObjects) {
-            if (userObject.getUsername().equals(username) &&
-            userObject.getPassword().equals(password)) {
-                token = userObject.getToken();
-            }
-        }
+        String token = persist.doesUserExists(username, password);
         return token;
     }
 
