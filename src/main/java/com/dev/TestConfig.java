@@ -1,17 +1,16 @@
 package com.dev;
 
-import org.h2.tools.Server;
+import com.dev.objects.UserObject;
+import org.hibernate.SessionFactory;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.cfg.Environment;
+import org.hibernate.service.ServiceRegistry;
+import org.reflections.Reflections;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Profile;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
-import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
-
-import javax.sql.DataSource;
-import java.sql.SQLException;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * Test config that turn on H2 in-memory database.
@@ -20,49 +19,45 @@ import java.util.Properties;
  */
 
 @Configuration
-@Profile("test")
+@Profile("production")
 public class TestConfig {
+
     @Bean
-    public DataSource dataSource() {
-        DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName("org.h2.Driver");
-        dataSource.setUrl("jdbc:h2:mem:election;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE");
-        return dataSource;
+    public Properties dataSource() throws Exception {
+        Properties settings = new Properties();
+        settings.put(Environment.DRIVER, "com.mysql.jdbc.Driver");
+        settings.put(Environment.URL, "jdbc:mysql://localhost:3306/ashcollege?useSSL=false&amp;useUnicode=true&amp;characterEncoding=utf8");
+        settings.put(Environment.USER, "root");
+        settings.put(Environment.PASS, "1234");
+        settings.put(Environment.DIALECT, "org.hibernate.dialect.MySQL5Dialect");
+        settings.put(Environment.SHOW_SQL, "true");
+        settings.put(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread");
+        settings.put(Environment.HBM2DDL_AUTO, "update");
+        settings.put(Environment.ENABLE_LAZY_LOAD_NO_TRANS, true);
+        return settings;
     }
 
     @Bean
-    public LocalSessionFactoryBean sessionFactory() {
-        LocalSessionFactoryBean sessionFactoryBean = new LocalSessionFactoryBean();
-        sessionFactoryBean.setDataSource(dataSource());
-        Properties hibernateProperties = new Properties();
-        hibernateProperties.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
-        hibernateProperties.put("hibernate.hbm2ddl.auto", "update");
-        hibernateProperties.put("hibernate.jdbc.batch_size", 50);
-        hibernateProperties.put("hibernate.connection.characterEncoding", "utf8");
-        hibernateProperties.put("hibernate.cache.use_second_level_cache", "true");
-        hibernateProperties.put("hibernate.cache.use_query_cache", "true");
-        hibernateProperties.put("hibernate.cache.region.factory_class", "org.hibernate.cache.ehcache.EhCacheRegionFactory");
-        sessionFactoryBean.setHibernateProperties(hibernateProperties);
-        sessionFactoryBean.setMappingResources("objects.hbm.xml");
-        return sessionFactoryBean;
+    public SessionFactory sessionFactory() throws Exception {
+        org.hibernate.cfg.Configuration configuration = new org.hibernate.cfg.Configuration();
+        configuration.setProperties(dataSource());
+        Set<Class<? extends Object>> entities = new Reflections("com.dev.objects").getSubTypesOf(Object.class);
+        for (Class<? extends Object> clazz : entities) {
+            configuration.addAnnotatedClass(clazz);
+        }
+        configuration.addAnnotatedClass(UserObject.class);
+        ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
+                .applySettings(configuration.getProperties()).build();
+        return configuration.buildSessionFactory(serviceRegistry);
     }
 
+
     @Bean
-    public HibernateTransactionManager transactionManager() {
+    public HibernateTransactionManager transactionManager() throws Exception{
         HibernateTransactionManager transactionManager = new HibernateTransactionManager();
-        transactionManager.setSessionFactory(sessionFactory().getObject());
+        transactionManager.setSessionFactory(sessionFactory());
         return transactionManager;
     }
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
-    @DependsOn("h2WebServer")
-    public Server h2Server() throws SQLException {
-        return Server.createTcpServer("-tcp", "-tcpAllowOthers");
-    }
-
-    @Bean(initMethod = "start", destroyMethod = "stop")
-    public Server h2WebServer() throws SQLException {
-        return Server.createWebServer("-web", "-webAllowOthers");
-    }
 
 }
