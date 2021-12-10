@@ -48,6 +48,7 @@ public class TestConfig {
         }
         configuration.addAnnotatedClass(UserObject.class);
         configuration.addAnnotatedClass(PostObject.class);
+
         ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
                 .applySettings(configuration.getProperties()).build();
         return configuration.buildSessionFactory(serviceRegistry);
