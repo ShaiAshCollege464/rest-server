@@ -51,6 +51,7 @@ public class Persist {
         if (userId != null) {
             PostObject postObject = new PostObject();
             UserObject userObject = new UserObject();
+            userObject.setId(userId);
             postObject.setUserObject(userObject);
             postObject.setContent(content);
             Session session = sessionFactory.openSession();
