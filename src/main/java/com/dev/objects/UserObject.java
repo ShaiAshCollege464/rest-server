@@ -1,11 +1,26 @@
 package com.dev.objects;
 
+import javax.persistence.*;
 import java.util.List;
 
+@Entity
+@Table(name = "users")
 public class UserObject {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column
+    public int id;
+
+    @Column
     private String username;
+
+    @Column
     private String password;
+
+    @Column
     private String token;
+
+    @Transient
     private List<PostObject> posts;
 
     public String getUsername() {
@@ -33,7 +48,6 @@ public class UserObject {
     }
 
     public void addPost (String post) {
-
     }
 
     public List<PostObject> getPosts() {
@@ -43,4 +57,13 @@ public class UserObject {
     public void setPosts(List<PostObject> posts) {
         this.posts = posts;
     }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
 }

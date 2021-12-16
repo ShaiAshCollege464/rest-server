@@ -1,10 +1,26 @@
 package com.dev.objects;
 
+import javax.persistence.*;
+import java.util.Date;
+
+@Entity
+@Table (name = "posts")
 public class PostObject {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column
     private int id;
-    private String senderName;
-    private String date;
+
+    @Column
+    private Date date;
+
+    @Column
     private String content;
+
+    @ManyToOne
+    @JoinColumn (name = "author_id")
+    private UserObject userObject;
 
     public int getId() {
         return id;
@@ -14,19 +30,11 @@ public class PostObject {
         this.id = id;
     }
 
-    public String getSenderName() {
-        return senderName;
-    }
-
-    public void setSenderName(String senderName) {
-        this.senderName = senderName;
-    }
-
-    public String getDate() {
+    public Date getDate() {
         return date;
     }
 
-    public void setDate(String date) {
+    public void setDate(Date date) {
         this.date = date;
     }
 
@@ -36,5 +44,13 @@ public class PostObject {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public UserObject getUserObject() {
+        return userObject;
+    }
+
+    public void setUserObject(UserObject userObject) {
+        this.userObject = userObject;
     }
 }
