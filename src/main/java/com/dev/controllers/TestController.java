@@ -4,18 +4,22 @@ import com.dev.Persist;
 import com.dev.objects.PostObject;
 import com.dev.objects.UserObject;
 import com.dev.utils.Utils;
+import org.hibernate.engine.jdbc.StreamUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
-import javax.xml.bind.DatatypeConverter;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+
 import java.util.List;
-import java.util.Random;
 
 
 @RestController
@@ -53,8 +57,17 @@ public class TestController {
     }
 
 
-    @RequestMapping("add-post")
-    public boolean addPost (String token, String content) {
+    @RequestMapping(value = "/add-post", headers = "content-type=multipart/*", method = RequestMethod.POST)
+    public boolean addPost (@RequestParam(value = "file", required = false) MultipartFile multipartFile, String token, String content) {
+        if (multipartFile != null) {
+            try {
+                File fileOnDisk = new File("C:\\Users\\user\\Downloads\\predictions-new1\\2.jpg");
+                multipartFile.transferTo(fileOnDisk);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
         return persist.addPost(token, content);
     }
 
@@ -68,6 +81,30 @@ public class TestController {
     public boolean removePost (String token, int postId) {
         return persist.removePost(token, postId);
     }
+
+
+    @RequestMapping(value = "/get-post-image", method = RequestMethod.GET, produces = MediaType.IMAGE_JPEG_VALUE)
+    public void postImage (HttpServletResponse response, int postId) {
+        response.setContentType(MediaType.IMAGE_JPEG_VALUE);
+        String path = "C:\\Users\\user\\Downloads\\predictions-new1\\2.jpg";
+        if (new File(path).exists()) {
+            serveImage(response, path);
+        }
+
+    }
+
+    public static void serveImage (HttpServletResponse response, String path) {
+        try {
+            response.setContentType(MediaType.IMAGE_JPEG_VALUE);
+            FileInputStream fileInputStream = new FileInputStream(new File(path));
+            StreamUtils.copy(fileInputStream, response.getOutputStream());
+            fileInputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
 
 
 
